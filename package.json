@@ -1,0 +1,64 @@
+{
+  "name": "rpf-markdown-preview",
+  "displayName": "rpf-markdown-preview",
+  "description": "",
+  "version": "0.0.1",
+  "engines": {
+    "vscode": "^1.116.0"
+  },
+  "categories": [
+    "Other"
+  ],
+  "activationEvents": [],
+  "main": "./out/extension.js",
+  "contributes": {
+    "commands": [
+      {
+        "command": "rpf-markdown-preview.openPreview",
+        "title": "RPF Markdown: Open Preview"
+      }
+    ],
+    "menus": {
+      "explorer/context": [
+        {
+          "when": "resourceLangId == markdown",
+          "command": "rpf-markdown-preview.openPreview",
+          "group": "navigation"
+        }
+      ],
+      "editor/title": [
+        {
+          "when": "resourceLangId == markdown",
+          "command": "rpf-markdown-preview.openPreview",
+          "group": "navigation"
+        }
+      ]
+    }
+  },
+  "scripts": {
+    "vscode:prepublish": "yarn run compile",
+    "compile:ext": "tsc -p ./",
+    "compile:webview": "node scripts/build-webview.mjs",
+    "compile": "npm run compile:ext && npm run compile:webview",
+    "watch:webview": "node scripts/build-webview.mjs --watch",
+    "pretest": "yarn run compile && yarn run lint",
+    "lint": "eslint src",
+    "test": "vscode-test"
+  },
+  "devDependencies": {
+    "@types/mocha": "^10.0.10",
+    "@types/node": "22.x",
+    "@types/vscode": "^1.116.0",
+    "@vscode/test-cli": "^0.0.12",
+    "@vscode/test-electron": "^2.5.2",
+    "esbuild-sass-plugin": "^3.7.0",
+    "eslint": "^9.39.3",
+    "sass": "^1.99.0",
+    "typescript": "^5.9.3",
+    "typescript-eslint": "^8.56.1"
+  },
+  "dependencies": {
+    "esbuild": "^0.28.0",
+    "prismjs": "^1.30.0"
+  }
+}
