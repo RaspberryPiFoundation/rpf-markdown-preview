@@ -6,6 +6,7 @@ on:
 
 permissions:
   contents: write
+  packages: read
 
 concurrency:
   group: release-vsix-${{ github.event.release.id }}
@@ -31,9 +32,9 @@ jobs:
           corepack prepare yarn@4.12.0 --activate
 
       - name: Install dependencies
-        run: yarn install --frozen-lockfile
+        run: yarn install --immutable
         env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GITHUB_TOKEN: ${{ github.token }}
 
       - name: Build extension
         run: yarn run compile
@@ -52,4 +53,4 @@ jobs:
       - name: Upload VSIX to triggering release
         run: gh release upload "${{ github.event.release.tag_name }}" ./*.vsix --clobber
         env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GH_TOKEN: ${{ github.token }}
