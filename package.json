@@ -55,11 +55,11 @@
     "eslint": "^9.39.3",
     "sass": "^1.99.0",
     "typescript": "^5.9.3",
-    "typescript-eslint": "^8.56.1"
+    "typescript-eslint": "^8.56.1",
+    "esbuild": "^0.28.0"
   },
   "dependencies": {
     "@raspberrypifoundation/rpf-markdown-core": "^0.0.2",
-    "esbuild": "^0.28.0",
     "prismjs": "^1.30.0"
   }
 }
