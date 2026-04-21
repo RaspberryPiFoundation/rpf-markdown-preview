@@ -71,9 +71,10 @@ function createPreviewRenderer(
 
   const loadProcessEditorProject = (): Promise<ProcessEditorProject> => {
     if (!processEditorProjectLoader) {
-      processEditorProjectLoader = import("rpf-markdown-core").then(
-        ({ processEditorProject }) => processEditorProject,
-      );
+      processEditorProjectLoader =
+        import("@raspberrypifoundation/rpf-markdown-core").then(
+          ({ processEditorProject }) => processEditorProject,
+        );
     }
     return processEditorProjectLoader;
   };
