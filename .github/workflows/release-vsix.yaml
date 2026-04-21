@@ -47,7 +47,7 @@ jobs:
         run: yarn run test
 
       - name: Package VSIX
-        run: npx @vscode/vsce package --yarn
+        run: npx --yes @vscode/vsce package --yarn
 
       - name: Upload VSIX to triggering release
         run: gh release upload "${{ github.event.release.tag_name }}" ./*.vsix --clobber
