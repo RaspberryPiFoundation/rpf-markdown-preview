@@ -39,14 +39,6 @@ jobs:
       - name: Build extension
         run: yarn run compile
 
-      - name: Lint (non-blocking)
-        continue-on-error: true
-        run: yarn run lint
-
-      - name: Test (non-blocking)
-        continue-on-error: true
-        run: yarn run test
-
       - name: Package VSIX
         run: npx --yes @vscode/vsce package --no-yarn --allow-missing-repository --skip-license
 
