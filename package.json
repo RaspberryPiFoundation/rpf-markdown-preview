@@ -2,7 +2,7 @@
   "name": "rpf-markdown-preview",
   "displayName": "rpf-markdown-preview",
   "description": "",
-  "version": "0.0.1",
+  "version": "0.0.2",
   "engines": {
     "vscode": "^1.116.0"
   },
