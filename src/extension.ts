@@ -2,6 +2,8 @@ import * as vscode from "vscode";
 
 type ProcessEditorProject = (source: string) => string | Promise<string>;
 
+const PREVIEW_RENDER_DEBOUNCE_MS = 150;
+
 export function activate(context: vscode.ExtensionContext) {
   const command = vscode.commands.registerCommand(
     "rpf-markdown-preview.openPreview",
@@ -27,8 +29,8 @@ async function openPreview(
   const panel = createPreviewPanel(context, document);
   const render = createPreviewRenderer(panel);
 
-  await render(document);
   bindDocumentSync(panel, document.uri, render);
+  await render(document);
 }
 
 async function resolvePreviewDocument(
@@ -137,15 +139,39 @@ function bindDocumentSync(
   documentUri: vscode.Uri,
   render: (document: vscode.TextDocument) => Promise<void>,
 ): void {
+  const documentUriString = documentUri.toString();
+  let pendingDocument: vscode.TextDocument | undefined;
+  let debounceTimer: ReturnType<typeof setTimeout> | undefined;
+
   const changeSub = vscode.workspace.onDidChangeTextDocument((event) => {
-    if (event.document.uri.toString() !== documentUri.toString()) {
+    if (event.document.uri.toString() !== documentUriString) {
       return;
     }
 
-    void render(event.document);
+    pendingDocument = event.document;
+
+    if (debounceTimer) {
+      clearTimeout(debounceTimer);
+    }
+
+    debounceTimer = setTimeout(() => {
+      const documentToRender = pendingDocument;
+      pendingDocument = undefined;
+      debounceTimer = undefined;
+
+      if (!documentToRender) {
+        return;
+      }
+
+      void render(documentToRender);
+    }, PREVIEW_RENDER_DEBOUNCE_MS);
   });
 
   panel.onDidDispose(() => {
+    if (debounceTimer) {
+      clearTimeout(debounceTimer);
+    }
+
     changeSub.dispose();
   });
 }
