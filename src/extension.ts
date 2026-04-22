@@ -2,11 +2,26 @@ import * as vscode from "vscode";
 
 type ProcessEditorProject = (source: string) => string | Promise<string>;
 
+const OPEN_PREVIEW_COMMAND = "rpf-markdown-preview.openPreview";
+const PREVIEW_PANEL_VIEW_TYPE = "rpfMarkdownPreview";
 const PREVIEW_RENDER_DEBOUNCE_MS = 150;
+
+let processEditorProjectLoader: Promise<ProcessEditorProject> | undefined;
+
+function loadProcessEditorProject(): Promise<ProcessEditorProject> {
+  if (!processEditorProjectLoader) {
+    processEditorProjectLoader =
+      import("@raspberrypifoundation/rpf-markdown-core").then(
+        ({ processEditorProject }) => processEditorProject,
+      );
+  }
+
+  return processEditorProjectLoader;
+}
 
 export function activate(context: vscode.ExtensionContext) {
   const command = vscode.commands.registerCommand(
-    "rpf-markdown-preview.openPreview",
+    OPEN_PREVIEW_COMMAND,
     (resource?: vscode.Uri) => {
       void openPreview(context, resource);
     },
@@ -57,14 +72,13 @@ async function resolvePreviewDocument(
   return editor.document;
 }
 
-//creates the webview preview panel which will display the html content
-//also sets up the URIs for script and style resources needed for things like PrismJS
+// Creates the webview panel and wires in the preview script and stylesheet.
 function createPreviewPanel(
   context: vscode.ExtensionContext,
   document: vscode.TextDocument,
 ): vscode.WebviewPanel {
   const panel = vscode.window.createWebviewPanel(
-    "rpfMarkdownPreview",
+    PREVIEW_PANEL_VIEW_TYPE,
     "RPF Markdown Preview - " +
       vscode.workspace.asRelativePath(document.fileName),
     vscode.ViewColumn.Beside,
@@ -82,29 +96,16 @@ function createPreviewPanel(
     vscode.Uri.joinPath(context.extensionUri, "media", "preview.css"),
   );
 
-  panel.webview.html = getWebviewHtml(panel.webview, scriptUri, styleUri);
+  panel.webview.html = getWebviewHtml(scriptUri, styleUri);
 
   return panel;
 }
 
-//creates the function that will render the preview content in the webview
-//includes importing the processEditorProject function from the rpf-markdown-core package and
-// using it to convert the markdown content to HTML, which is then sent to the webview for rendering
+// Renders markdown into HTML and ignores stale async results.
 function createPreviewRenderer(
   panel: vscode.WebviewPanel,
 ): (document: vscode.TextDocument) => Promise<void> {
   let renderRequestId = 0;
-  let processEditorProjectLoader: Promise<ProcessEditorProject> | undefined;
-
-  const loadProcessEditorProject = (): Promise<ProcessEditorProject> => {
-    if (!processEditorProjectLoader) {
-      processEditorProjectLoader =
-        import("@raspberrypifoundation/rpf-markdown-core").then(
-          ({ processEditorProject }) => processEditorProject,
-        );
-    }
-    return processEditorProjectLoader;
-  };
 
   return async (document: vscode.TextDocument): Promise<void> => {
     const requestId = ++renderRequestId;
@@ -132,8 +133,7 @@ function createPreviewRenderer(
   };
 }
 
-//binds the preview to the specific document for which the preview command is called
-//keeps the preview up to date when there are changes in the document content
+// Keeps the preview synced with one document and debounces rapid edits.
 function bindDocumentSync(
   panel: vscode.WebviewPanel,
   documentUri: vscode.Uri,
@@ -176,11 +176,7 @@ function bindDocumentSync(
   });
 }
 
-function getWebviewHtml(
-  webview: vscode.Webview,
-  scriptUri: vscode.Uri,
-  styleUri: vscode.Uri,
-): string {
+function getWebviewHtml(scriptUri: vscode.Uri, styleUri: vscode.Uri): string {
   return `<!DOCTYPE html>
 <html lang="en">
 <head>
