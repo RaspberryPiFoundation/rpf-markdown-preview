@@ -5,8 +5,8 @@ type ProcessEditorProject = (source: string) => string | Promise<string>;
 export function activate(context: vscode.ExtensionContext) {
   const command = vscode.commands.registerCommand(
     "rpf-markdown-preview.openPreview",
-    () => {
-      openPreviewForActiveEditor(context);
+    (resource?: vscode.Uri) => {
+      void openPreview(context, resource);
     },
   );
 
@@ -15,31 +15,56 @@ export function activate(context: vscode.ExtensionContext) {
 
 export function deactivate() {}
 
-function openPreviewForActiveEditor(context: vscode.ExtensionContext): void {
-  const editor = vscode.window.activeTextEditor;
-  if (!editor) {
-    void vscode.window.showErrorMessage("Open a document first.");
+async function openPreview(
+  context: vscode.ExtensionContext,
+  resource?: vscode.Uri,
+): Promise<void> {
+  const document = await resolvePreviewDocument(resource);
+  if (!document) {
     return;
   }
 
-  const panel = createPreviewPanel(context);
+  const panel = createPreviewPanel(context, document);
   const render = createPreviewRenderer(panel);
 
-  void render(editor.document);
-  bindDocumentSync(panel, editor.document.uri, render);
+  await render(document);
+  bindDocumentSync(panel, document.uri, render);
+}
+
+async function resolvePreviewDocument(
+  resource?: vscode.Uri,
+): Promise<vscode.TextDocument | undefined> {
+  if (resource) {
+    try {
+      return await vscode.workspace.openTextDocument(resource);
+    } catch (error) {
+      const message = error instanceof Error ? error.message : String(error);
+      void vscode.window.showErrorMessage(
+        `Failed to open document: ${message}`,
+      );
+      return undefined;
+    }
+  }
+
+  const editor = vscode.window.activeTextEditor;
+  if (!editor) {
+    void vscode.window.showErrorMessage("Open a document first.");
+    return undefined;
+  }
+
+  return editor.document;
 }
 
 //creates the webview preview panel which will display the html content
 //also sets up the URIs for script and style resources needed for things like PrismJS
 function createPreviewPanel(
   context: vscode.ExtensionContext,
+  document: vscode.TextDocument,
 ): vscode.WebviewPanel {
   const panel = vscode.window.createWebviewPanel(
     "rpfMarkdownPreview",
     "RPF Markdown Preview - " +
-      vscode.workspace.asRelativePath(
-        vscode.window.activeTextEditor!.document.fileName,
-      ),
+      vscode.workspace.asRelativePath(document.fileName),
     vscode.ViewColumn.Beside,
     {
       enableScripts: true,
