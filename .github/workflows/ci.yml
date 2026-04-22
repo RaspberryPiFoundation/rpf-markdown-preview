@@ -43,6 +43,15 @@ jobs:
       - name: Build extension
         run: yarn run compile
 
+      - name: Upload build output
+        uses: actions/upload-artifact@v4
+        with:
+          name: extension-build
+          if-no-files-found: error
+          path: |
+            out
+            media
+
   lint:
     runs-on: ubuntu-latest
     needs: build
@@ -93,6 +102,12 @@ jobs:
 
       - name: Install dependencies
         run: yarn install --immutable
+
+      - name: Download build output
+        uses: actions/download-artifact@v4
+        with:
+          name: extension-build
+          path: .
 
       - name: Test
         run: yarn run wdio
