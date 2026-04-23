@@ -4,7 +4,8 @@ A markdown previewing extension for RPF markdown
 
 ## Features
 
-- Preview Markdown files for the projects site
+- Preview Markdown files for the projects site (currently only supports editor projects)
+- Scratch rendering
 - Live updates with each change to the markdown file
 
 ## Installation
