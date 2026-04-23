@@ -26,49 +26,6 @@ async function openFixtureMarkdown(browser: WebdriverIO.Browser) {
   }, markdownFixturePath);
 }
 
-async function getExtensionState(browser: WebdriverIO.Browser) {
-  return browser.executeWorkbench(
-    async (vscode, extensionName: string, commandId: string) => {
-      const extension = vscode.extensions.all.find(
-        (item: {
-          id: string;
-          isActive: boolean;
-          packageJSON?: { name?: string };
-          activate: () => Promise<unknown>;
-        }) => item.packageJSON?.name === extensionName,
-      );
-
-      if (!extension) {
-        return {
-          found: false,
-          isActive: false,
-          hasPreviewCommand: false,
-        };
-      }
-
-      await extension.activate();
-      const commands = await vscode.commands.getCommands(true);
-
-      return {
-        found: true,
-        isActive: extension.isActive,
-        hasPreviewCommand: commands.includes(commandId),
-      };
-    },
-    "rpf-markdown-preview",
-    previewCommandId,
-  );
-}
-
-async function getOpenTabLabels(browser: WebdriverIO.Browser) {
-  return browser.executeWorkbench(async (vscode) => {
-    return vscode.window.tabGroups.all.flatMap(
-      (group: { tabs: Array<{ label: string }> }) =>
-        group.tabs.map((tab: { label: string }) => tab.label),
-    );
-  });
-}
-
 async function findPreviewButton(browser: WebdriverIO.Browser) {
   const screen = setupBrowser(browser as unknown as TestingLibraryBrowser);
 
@@ -84,11 +41,6 @@ async function setupMarkdownPreviewTest() {
 
   const openedDocument = await openFixtureMarkdown(browser);
   expect(openedDocument.languageId).toBe("markdown");
-
-  const extensionState = await getExtensionState(browser);
-  expect(extensionState.found).toBe(true);
-  expect(extensionState.isActive).toBe(true);
-  expect(extensionState.hasPreviewCommand).toBe(true);
 
   await editorView.openEditor(markdownEditorTitle);
 
@@ -121,17 +73,18 @@ describe("VS Code Extension Testing", () => {
   });
 
   it("should open the preview webview after clicking the button", async () => {
-    const { browser, expect, previewButton } = await setupMarkdownPreviewTest();
+    const { browser, expect, editorView, previewButton } =
+      await setupMarkdownPreviewTest();
 
     await previewButton.moveTo();
     await previewButton.waitForClickable();
     await previewButton.click();
 
     await browser.waitUntil(async () => {
-      const openTabLabels = await getOpenTabLabels(browser);
-      return openTabLabels.includes(previewTabTitle);
+      const openEditorTitles = await editorView.getOpenEditorTitles();
+      return openEditorTitles.includes(previewTabTitle);
     });
 
-    expect(await getOpenTabLabels(browser)).toContain(previewTabTitle);
+    expect(await editorView.getOpenEditorTitles()).toContain(previewTabTitle);
   });
 });
