@@ -1,8 +1,12 @@
+import { setupBrowser } from "@testing-library/webdriverio";
+
 const markdownFixturePath = "test/fixtures/test.md";
 const markdownEditorTitle = "test.md";
 const previewCommandTitle = "RPF Markdown: Open Preview";
 const previewCommandId = "rpf-markdown-preview.openPreview";
 const previewTabTitle = "RPF Markdown Preview - test/fixtures/test.md";
+
+type TestingLibraryBrowser = Parameters<typeof setupBrowser>[0];
 
 async function openFixtureMarkdown(browser: WebdriverIO.Browser) {
   return browser.executeWorkbench(async (vscode, relativePath: string) => {
@@ -65,33 +69,10 @@ async function getOpenTabLabels(browser: WebdriverIO.Browser) {
   });
 }
 
-async function findPreviewButton(editorView: {
-  getActions: () => Promise<WebdriverIO.ElementArray>;
-  getAction: (title: string) => Promise<WebdriverIO.Element | undefined>;
-}) {
-  const exactMatch = await editorView.getAction(previewCommandTitle);
-  if (exactMatch) {
-    return exactMatch;
-  }
+async function findPreviewButton(browser: WebdriverIO.Browser) {
+  const screen = setupBrowser(browser as unknown as TestingLibraryBrowser);
 
-  const actions = await editorView.getActions();
-
-  for (const action of actions) {
-    const parent = await action.$("..");
-    const candidates = [
-      await action.getAttribute("title"),
-      await action.getAttribute("aria-label"),
-      await action.getText(),
-      await parent.getAttribute("title"),
-      await parent.getAttribute("aria-label"),
-    ].filter((value): value is string => Boolean(value));
-
-    if (candidates.some((value) => value.includes("RPF Markdown"))) {
-      return action;
-    }
-  }
-
-  return undefined;
+  return screen.findByRole("button", { name: previewCommandTitle });
 }
 
 async function setupMarkdownPreviewTest() {
@@ -111,9 +92,8 @@ async function setupMarkdownPreviewTest() {
 
   await editorView.openEditor(markdownEditorTitle);
 
-  const previewButton = await findPreviewButton(editorView);
-  expect(previewButton).toBeDefined();
-  await expect(previewButton!).toBeDisplayed();
+  const previewButton = await findPreviewButton(browser);
+  await expect(previewButton).toBeDisplayed();
   expect(await editorView.getOpenEditorTitles()).toContain(markdownEditorTitle);
   expect(openedDocument.fileName).toContain(markdownFixturePath);
 
@@ -122,7 +102,7 @@ async function setupMarkdownPreviewTest() {
     expect,
     editorView,
     openedDocument,
-    previewButton: previewButton!,
+    previewButton,
     workbench,
   };
 }
