@@ -1,6 +1,11 @@
 {
   "name": "rpf-markdown-preview",
   "displayName": "rpf-markdown-preview",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/RaspberryPiFoundation/rpf-markdown-preview.git"
+  },
   "description": "",
   "version": "0.0.2",
   "engines": {
