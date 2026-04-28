@@ -3,7 +3,6 @@ import { setupBrowser } from "@testing-library/webdriverio";
 const markdownFixturePath = "test/fixtures/test.md";
 const markdownEditorTitle = "test.md";
 const previewCommandTitle = "RPF Markdown: Open Preview";
-const previewCommandId = "rpf-markdown-preview.openPreview";
 const previewTabTitle = "RPF Markdown Preview - test/fixtures/test.md";
 
 type TestingLibraryBrowser = Parameters<typeof setupBrowser>[0];
