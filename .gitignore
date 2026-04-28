@@ -32,3 +32,5 @@ pnpm-debug.log*
 .DS_Store
 
 .env
+.wdio-vscode-service
+.wdio-test-storage

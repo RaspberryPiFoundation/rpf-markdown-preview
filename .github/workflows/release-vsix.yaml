@@ -40,7 +40,7 @@ jobs:
         run: yarn run compile
 
       - name: Package VSIX
-        run: npx --yes @vscode/vsce package --no-yarn --allow-missing-repository --skip-license
+        run: npx --yes @vscode/vsce package --no-yarn
 
       - name: Upload VSIX to triggering release
         run: gh release upload "${{ github.event.release.tag_name }}" ./*.vsix --clobber
