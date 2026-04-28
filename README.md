@@ -23,3 +23,10 @@ A markdown previewing extension for RPF markdown
 2. Merge the PR
 3. Create a Release with a tag for the version
 4. Once the Release is created, the .vsix file should be uploaded to the release shortly after.
+
+## Setting up for local dev
+
+1. This project uses the rpf-markdown-core library. To install that, you will need a Github personal access token
+2. Create a .env file and add GITHUB_TOKEN as a variable
+3. Your token should have the following permissions: repo, write:packages
+4. With the .env set up, `corepack yarn install` should correctly install the rpf-markdown-core library along with all other packages.
