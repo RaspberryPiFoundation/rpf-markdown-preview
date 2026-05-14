@@ -1216,16 +1216,16 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@raspberrypifoundation/rpf-markdown-core@npm:^0.0.2":
-  version: 0.0.2
-  resolution: "@raspberrypifoundation/rpf-markdown-core@npm:0.0.2::__archiveUrl=https%3A%2F%2Fnpm.pkg.github.com%2Fdownload%2F%40raspberrypifoundation%2Frpf-markdown-core%2F0.0.2%2Ff74b68635d98a947fc16a6c0605d571277b00102"
+"@raspberrypifoundation/rpf-markdown-core@npm:^0.1.0":
+  version: 0.1.0
+  resolution: "@raspberrypifoundation/rpf-markdown-core@npm:0.1.0::__archiveUrl=https%3A%2F%2Fnpm.pkg.github.com%2Fdownload%2F%40raspberrypifoundation%2Frpf-markdown-core%2F0.1.0%2F010260c0a1e219c82ff5b4892b70a26f755a50d8"
   dependencies:
     happy-dom: "npm:^20.9.0"
     marked: "npm:^17.0.5"
     marked-gfm-heading-id: "npm:^4.1.4"
     prismjs: "npm:^1.30.0"
     scratchblocks: "npm:^3.6.4"
-  checksum: 10c0/ac0980e0559e6f84d126308bff9dbf7e32f23f1da906257eeb633af3d2470a211635cabfe6de61251366ae77c7e90336595950704bd85c214484bd248d01ac3f
+  checksum: 10c0/ed2fbacb4492a1b36d7ba6341403c4e02d99603615f8b713171d9107d5606d0aa2f2ae7f951aa6c3ecdcc987246b4c4054bd5b4d0922622e0c54d749b51ede05
   languageName: node
   linkType: hard
 
@@ -6924,7 +6924,7 @@ __metadata:
   version: 0.0.0-use.local
   resolution: "rpf-markdown-preview@workspace:."
   dependencies:
-    "@raspberrypifoundation/rpf-markdown-core": "npm:^0.0.2"
+    "@raspberrypifoundation/rpf-markdown-core": "npm:^0.1.0"
     "@testing-library/webdriverio": "npm:^3.2.1"
     "@types/mocha": "npm:^10.0.10"
     "@types/node": "npm:^22.0.0"

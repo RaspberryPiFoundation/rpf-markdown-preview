@@ -7,7 +7,7 @@
     "url": "git+https://github.com/RaspberryPiFoundation/rpf-markdown-preview.git"
   },
   "description": "",
-  "version": "0.0.2",
+  "version": "0.0.3",
   "engines": {
     "vscode": "^1.116.0"
   },
@@ -75,7 +75,7 @@
     "wdio-vscode-service": "^6.1.4"
   },
   "dependencies": {
-    "@raspberrypifoundation/rpf-markdown-core": "^0.0.2",
+    "@raspberrypifoundation/rpf-markdown-core": "^0.1.0",
     "prismjs": "^1.30.0"
   }
 }
