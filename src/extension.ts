@@ -84,7 +84,7 @@ function createPreviewPanel(
     vscode.ViewColumn.Beside,
     {
       enableScripts: true,
-      localResourceRoots: [vscode.Uri.joinPath(context.extensionUri, "media")],
+      localResourceRoots: resolveLocalResourceRoots(context, document),
     },
   );
 
@@ -101,6 +101,81 @@ function createPreviewPanel(
   return panel;
 }
 
+// Builds the set of directories the webview is allowed to load files from:
+// the bundled media assets plus the document's directory and its workspace
+// folder, so images referenced relative to the markdown file can load.
+function resolveLocalResourceRoots(
+  context: vscode.ExtensionContext,
+  document: vscode.TextDocument,
+): vscode.Uri[] {
+  const roots = [vscode.Uri.joinPath(context.extensionUri, "media")];
+
+  if (document.uri.scheme === "file") {
+    roots.push(vscode.Uri.joinPath(document.uri, ".."));
+
+    const workspaceFolder = vscode.workspace.getWorkspaceFolder(document.uri);
+    if (workspaceFolder) {
+      roots.push(workspaceFolder.uri);
+    }
+  }
+
+  return roots;
+}
+
+// Matches src="..." and src='...' attributes in the rendered HTML.
+const RESOURCE_ATTRIBUTE_PATTERN = /\bsrc=("|')(.*?)\1/gi;
+
+// Rewrites relative image (and other resource) URLs in the rendered HTML to
+// webview URIs resolved against the markdown document's location. Absolute
+// URLs (http(s):, data:, etc.) are left untouched.
+function rewriteResourceUris(
+  html: string,
+  webview: vscode.Webview,
+  documentUri: vscode.Uri,
+): string {
+  if (documentUri.scheme !== "file") {
+    return html;
+  }
+
+  const documentDir = vscode.Uri.joinPath(documentUri, "..");
+
+  return html.replace(
+    RESOURCE_ATTRIBUTE_PATTERN,
+    (match, quote: string, value: string) => {
+      const trimmed = value.trim();
+
+      if (!trimmed || isAbsoluteResourceUrl(trimmed)) {
+        return match;
+      }
+
+      const resolved = resolveRelativeResource(documentDir, trimmed);
+      const webviewUri = webview.asWebviewUri(resolved);
+
+      return `src=${quote}${webviewUri.toString()}${quote}`;
+    },
+  );
+}
+
+function isAbsoluteResourceUrl(value: string): boolean {
+  return (
+    /^[a-z][a-z0-9+.-]*:/i.test(value) ||
+    value.startsWith("//") ||
+    value.startsWith("#")
+  );
+}
+
+// Resolves a relative path (possibly with ./ or ../ segments) against the
+// document directory using path semantics.
+function resolveRelativeResource(
+  documentDir: vscode.Uri,
+  relativePath: string,
+): vscode.Uri {
+  const [pathPart] = relativePath.split(/[?#]/, 1);
+  const segments = pathPart.split("/").filter((segment) => segment.length > 0);
+
+  return vscode.Uri.joinPath(documentDir, ...segments);
+}
+
 // Renders markdown into HTML and ignores stale async results.
 function createPreviewRenderer(
   panel: vscode.WebviewPanel,
@@ -112,11 +187,13 @@ function createPreviewRenderer(
 
     try {
       const processEditorProject = await loadProcessEditorProject();
-      const html = await processEditorProject(document.getText());
+      const rawHtml = await processEditorProject(document.getText());
 
       if (requestId !== renderRequestId) {
         return;
       }
+
+      const html = rewriteResourceUris(rawHtml, panel.webview, document.uri);
 
       void panel.webview.postMessage({
         type: "render",
