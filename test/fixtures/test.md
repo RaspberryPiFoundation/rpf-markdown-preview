@@ -72,3 +72,5 @@ when green flag clicked
 move (10) steps
 
 ```
+
+![A test image](./image.png)

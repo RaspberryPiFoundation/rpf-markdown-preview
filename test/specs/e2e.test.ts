@@ -58,6 +58,24 @@ async function setupMarkdownPreviewTest() {
   };
 }
 
+// Opens the markdown fixture, clicks the preview button, and waits for the
+// preview tab to appear. Returns the test context for further assertions.
+async function openPreview() {
+  const context = await setupMarkdownPreviewTest();
+  const { browser, editorView, previewButton } = context;
+
+  await previewButton.moveTo();
+  await previewButton.waitForClickable();
+  await previewButton.click();
+
+  await browser.waitUntil(async () => {
+    const openEditorTitles = await editorView.getOpenEditorTitles();
+    return openEditorTitles.includes(previewTabTitle);
+  });
+
+  return context;
+}
+
 describe("VS Code Extension Testing", () => {
   it("should be able to load VSCode", async () => {
     const { browser, expect } = await import("@wdio/globals");
@@ -72,18 +90,42 @@ describe("VS Code Extension Testing", () => {
   });
 
   it("should open the preview webview after clicking the button", async () => {
-    const { browser, expect, editorView, previewButton } =
-      await setupMarkdownPreviewTest();
-
-    await previewButton.moveTo();
-    await previewButton.waitForClickable();
-    await previewButton.click();
-
-    await browser.waitUntil(async () => {
-      const openEditorTitles = await editorView.getOpenEditorTitles();
-      return openEditorTitles.includes(previewTabTitle);
-    });
+    const { expect, editorView } = await openPreview();
 
     expect(await editorView.getOpenEditorTitles()).toContain(previewTabTitle);
+  });
+
+  it("should render a relative image as a loaded webview resource", async () => {
+    const { browser, expect, workbench } = await openPreview();
+
+    // getWebviewByTitle matches the webview document's <title> ("Preview"),
+    // not the editor tab title.
+    const webview = await workbench.getWebviewByTitle("Preview");
+    await webview.open();
+
+    try {
+      const image = await browser.$("#app img").getElement();
+      await image.waitForExist({ timeout: 10_000 });
+
+      // The relative ./image.png src must have been rewritten to a webview
+      // resource URI (vscode-webview / vscode-cdn), not left as a relative path.
+      const src = await image.getAttribute("src");
+      expect(src).not.toMatch(/^\.?\//);
+      expect(src).toMatch(/^https?:\/\/|^vscode-/);
+
+      // And the rewritten URI must actually resolve and load.
+      await browser.waitUntil(
+        async () => {
+          const naturalWidth = await browser.execute(
+            (el: HTMLImageElement) => el.complete && el.naturalWidth,
+            image as unknown as HTMLImageElement,
+          );
+          return Boolean(naturalWidth);
+        },
+        { timeout: 10_000, timeoutMsg: "Relative image never loaded in preview" },
+      );
+    } finally {
+      await webview.close();
+    }
   });
 });
