@@ -122,12 +122,18 @@ function resolveLocalResourceRoots(
   return roots;
 }
 
-// Matches src="..." and src='...' attributes in the rendered HTML.
-const RESOURCE_ATTRIBUTE_PATTERN = /\bsrc=("|')(.*?)\1/gi;
+// Matches <img> and <source> opening tags. Rewriting is restricted to these
+// tags so that relative src attributes on other tags (e.g. <iframe>, <video>,
+// <embed>) are never turned into loadable webview URIs, which would let a
+// markdown file pull in arbitrary local HTML/JS documents.
+const RESOURCE_TAG_PATTERN = /<(?:img|source)\b[^>]*>/gi;
 
-// Rewrites relative image (and other resource) URLs in the rendered HTML to
-// webview URIs resolved against the markdown document's location. Absolute
-// URLs (http(s):, data:, etc.) are left untouched.
+// Matches a single src="..." / src='...' attribute within a tag.
+const SRC_ATTRIBUTE_PATTERN = /\bsrc=("|')(.*?)\1/i;
+
+// Rewrites relative image resource URLs in the rendered HTML to webview URIs
+// resolved against the markdown document's location. Only <img> and <source>
+// tags are rewritten; absolute URLs (http(s):, data:, etc.) are left untouched.
 function rewriteResourceUris(
   html: string,
   webview: vscode.Webview,
@@ -139,20 +145,25 @@ function rewriteResourceUris(
 
   const documentDir = vscode.Uri.joinPath(documentUri, "..");
 
-  return html.replace(
-    RESOURCE_ATTRIBUTE_PATTERN,
-    (match, quote: string, value: string) => {
-      const trimmed = value.trim();
+  return html.replace(RESOURCE_TAG_PATTERN, (tag: string) =>
+    tag.replace(
+      SRC_ATTRIBUTE_PATTERN,
+      (match, quote: string, value: string) => {
+        const trimmed = value.trim();
 
-      if (!trimmed || isAbsoluteResourceUrl(trimmed)) {
-        return match;
-      }
+        if (!trimmed || isAbsoluteResourceUrl(trimmed)) {
+          return match;
+        }
 
-      const resolved = resolveRelativeResource(documentDir, trimmed);
-      const webviewUri = webview.asWebviewUri(resolved);
+        const rewritten = resolveRelativeResource(
+          documentDir,
+          trimmed,
+          webview,
+        );
 
-      return `src=${quote}${webviewUri.toString()}${quote}`;
-    },
+        return `src=${quote}${rewritten}${quote}`;
+      },
+    ),
   );
 }
 
@@ -165,15 +176,24 @@ function isAbsoluteResourceUrl(value: string): boolean {
 }
 
 // Resolves a relative path (possibly with ./ or ../ segments) against the
-// document directory using path semantics.
+// document directory and returns the corresponding webview URI string. Any
+// query string or fragment on the original value (e.g. sprite.svg#icon) is
+// preserved by re-attaching it to the resolved webview URI.
 function resolveRelativeResource(
   documentDir: vscode.Uri,
   relativePath: string,
-): vscode.Uri {
-  const [pathPart] = relativePath.split(/[?#]/, 1);
+  webview: vscode.Webview,
+): string {
+  const suffixMatch = /[?#].*$/.exec(relativePath);
+  const suffix = suffixMatch ? suffixMatch[0] : "";
+  const pathPart = suffix
+    ? relativePath.slice(0, suffixMatch!.index)
+    : relativePath;
   const segments = pathPart.split("/").filter((segment) => segment.length > 0);
 
-  return vscode.Uri.joinPath(documentDir, ...segments);
+  const resolved = vscode.Uri.joinPath(documentDir, ...segments);
+
+  return `${webview.asWebviewUri(resolved).toString()}${suffix}`;
 }
 
 // Renders markdown into HTML and ignores stale async results.
