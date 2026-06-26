@@ -84,7 +84,7 @@ function createPreviewPanel(
     vscode.ViewColumn.Beside,
     {
       enableScripts: true,
-      localResourceRoots: [vscode.Uri.joinPath(context.extensionUri, "media")],
+      localResourceRoots: resolveLocalResourceRoots(context, document),
     },
   );
 
@@ -101,6 +101,101 @@ function createPreviewPanel(
   return panel;
 }
 
+// Builds the set of directories the webview is allowed to load files from:
+// the bundled media assets plus the document's directory and its workspace
+// folder, so images referenced relative to the markdown file can load.
+function resolveLocalResourceRoots(
+  context: vscode.ExtensionContext,
+  document: vscode.TextDocument,
+): vscode.Uri[] {
+  const roots = [vscode.Uri.joinPath(context.extensionUri, "media")];
+
+  if (document.uri.scheme === "file") {
+    roots.push(vscode.Uri.joinPath(document.uri, ".."));
+
+    const workspaceFolder = vscode.workspace.getWorkspaceFolder(document.uri);
+    if (workspaceFolder) {
+      roots.push(workspaceFolder.uri);
+    }
+  }
+
+  return roots;
+}
+
+// Matches <img> and <source> opening tags. Rewriting is restricted to these
+// tags so that relative src attributes on other tags (e.g. <iframe>, <video>,
+// <embed>) are never turned into loadable webview URIs, which would let a
+// markdown file pull in arbitrary local HTML/JS documents.
+const RESOURCE_TAG_PATTERN = /<(?:img|source)\b[^>]*>/gi;
+
+// Matches a single src="..." / src='...' attribute within a tag.
+const SRC_ATTRIBUTE_PATTERN = /\bsrc=("|')(.*?)\1/i;
+
+// Rewrites relative image resource URLs in the rendered HTML to webview URIs
+// resolved against the markdown document's location. Only <img> and <source>
+// tags are rewritten; absolute URLs (http(s):, data:, etc.) are left untouched.
+function rewriteResourceUris(
+  html: string,
+  webview: vscode.Webview,
+  documentUri: vscode.Uri,
+): string {
+  if (documentUri.scheme !== "file") {
+    return html;
+  }
+
+  const documentDir = vscode.Uri.joinPath(documentUri, "..");
+
+  return html.replace(RESOURCE_TAG_PATTERN, (tag: string) =>
+    tag.replace(
+      SRC_ATTRIBUTE_PATTERN,
+      (match, quote: string, value: string) => {
+        const trimmed = value.trim();
+
+        if (!trimmed || isAbsoluteResourceUrl(trimmed)) {
+          return match;
+        }
+
+        const rewritten = resolveRelativeResource(
+          documentDir,
+          trimmed,
+          webview,
+        );
+
+        return `src=${quote}${rewritten}${quote}`;
+      },
+    ),
+  );
+}
+
+function isAbsoluteResourceUrl(value: string): boolean {
+  return (
+    /^[a-z][a-z0-9+.-]*:/i.test(value) ||
+    value.startsWith("//") ||
+    value.startsWith("#")
+  );
+}
+
+// Resolves a relative path (possibly with ./ or ../ segments) against the
+// document directory and returns the corresponding webview URI string. Any
+// query string or fragment on the original value (e.g. sprite.svg#icon) is
+// preserved by re-attaching it to the resolved webview URI.
+function resolveRelativeResource(
+  documentDir: vscode.Uri,
+  relativePath: string,
+  webview: vscode.Webview,
+): string {
+  const suffixMatch = /[?#].*$/.exec(relativePath);
+  const suffix = suffixMatch ? suffixMatch[0] : "";
+  const pathPart = suffix
+    ? relativePath.slice(0, suffixMatch!.index)
+    : relativePath;
+  const segments = pathPart.split("/").filter((segment) => segment.length > 0);
+
+  const resolved = vscode.Uri.joinPath(documentDir, ...segments);
+
+  return `${webview.asWebviewUri(resolved).toString()}${suffix}`;
+}
+
 // Renders markdown into HTML and ignores stale async results.
 function createPreviewRenderer(
   panel: vscode.WebviewPanel,
@@ -112,11 +207,13 @@ function createPreviewRenderer(
 
     try {
       const processEditorProject = await loadProcessEditorProject();
-      const html = await processEditorProject(document.getText());
+      const rawHtml = await processEditorProject(document.getText());
 
       if (requestId !== renderRequestId) {
         return;
       }
+
+      const html = rewriteResourceUris(rawHtml, panel.webview, document.uri);
 
       void panel.webview.postMessage({
         type: "render",

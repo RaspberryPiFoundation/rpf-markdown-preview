@@ -75,7 +75,7 @@
     "wdio-vscode-service": "^6.1.4"
   },
   "dependencies": {
-    "@raspberrypifoundation/rpf-markdown-core": "^0.1.0",
+    "@raspberrypifoundation/rpf-markdown-core": "^0.1.2",
     "prismjs": "^1.30.0"
   }
 }

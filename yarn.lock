@@ -1216,16 +1216,16 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@raspberrypifoundation/rpf-markdown-core@npm:^0.1.0":
-  version: 0.1.0
-  resolution: "@raspberrypifoundation/rpf-markdown-core@npm:0.1.0::__archiveUrl=https%3A%2F%2Fnpm.pkg.github.com%2Fdownload%2F%40raspberrypifoundation%2Frpf-markdown-core%2F0.1.0%2F010260c0a1e219c82ff5b4892b70a26f755a50d8"
+"@raspberrypifoundation/rpf-markdown-core@npm:^0.1.2":
+  version: 0.1.2
+  resolution: "@raspberrypifoundation/rpf-markdown-core@npm:0.1.2"
   dependencies:
     happy-dom: "npm:^20.9.0"
     marked: "npm:^17.0.5"
     marked-gfm-heading-id: "npm:^4.1.4"
     prismjs: "npm:^1.30.0"
     scratchblocks: "npm:^3.6.4"
-  checksum: 10c0/ed2fbacb4492a1b36d7ba6341403c4e02d99603615f8b713171d9107d5606d0aa2f2ae7f951aa6c3ecdcc987246b4c4054bd5b4d0922622e0c54d749b51ede05
+  checksum: 10c0/3dde36962617a87d2ecc692d7c7c978f6a15860685b594952c7005cffc8a62d4c1ca64e2bab5ddaa7a3fcf0e68bc2f61fefd5e48cddf418995ae12b711fa91b4
   languageName: node
   linkType: hard
 
@@ -1380,12 +1380,21 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@types/node@npm:*, @types/node@npm:>=20.0.0":
+"@types/node@npm:*":
   version: 25.6.0
   resolution: "@types/node@npm:25.6.0"
   dependencies:
     undici-types: "npm:~7.19.0"
   checksum: 10c0/d2d2015630ff098a201407f55f5077a20270ae4f465c739b40865cd9933b91b9c5d2b85568eadaf3db0801b91e267333ca7eb39f007428b173d1cdab4b339ac5
+  languageName: node
+  linkType: hard
+
+"@types/node@npm:>=20.0.0":
+  version: 26.0.0
+  resolution: "@types/node@npm:26.0.0"
+  dependencies:
+    undici-types: "npm:~8.3.0"
+  checksum: 10c0/f36e21634fd8e8ded162ca486508bd8bb229d398a8d5541f6d8c1255968d4464e53327a77f403b216ef98e3b6f6956882eef83e4857d4bc2be9569dd55d37aae
   languageName: node
   linkType: hard
 
@@ -2503,6 +2512,15 @@ __metadata:
   version: 0.2.13
   resolution: "buffer-crc32@npm:0.2.13"
   checksum: 10c0/cb0a8ddf5cf4f766466db63279e47761eb825693eeba6a5a95ee4ec8cb8f81ede70aa7f9d8aeec083e781d47154290eb5d4d26b3f7a465ec57fb9e7d59c47150
+  languageName: node
+  linkType: hard
+
+"buffer-image-size@npm:^0.6.4":
+  version: 0.6.4
+  resolution: "buffer-image-size@npm:0.6.4"
+  dependencies:
+    "@types/node": "npm:*"
+  checksum: 10c0/7158205c8726caa521d3ae6ef7bc341eff211ff86f7278d122e45062e1720afef2f7ad8e845edc96c04f499b292c4ec8a74df9836a25074881260ba00b863448
   languageName: node
   linkType: hard
 
@@ -4549,16 +4567,17 @@ __metadata:
   linkType: hard
 
 "happy-dom@npm:^20.9.0":
-  version: 20.9.0
-  resolution: "happy-dom@npm:20.9.0"
+  version: 20.10.6
+  resolution: "happy-dom@npm:20.10.6"
   dependencies:
     "@types/node": "npm:>=20.0.0"
     "@types/whatwg-mimetype": "npm:^3.0.2"
     "@types/ws": "npm:^8.18.1"
+    buffer-image-size: "npm:^0.6.4"
     entities: "npm:^7.0.1"
     whatwg-mimetype: "npm:^3.0.0"
-    ws: "npm:^8.18.3"
-  checksum: 10c0/4fb814057b85d13d9459c1af39de28d6e7504ba99c12123179e6c69d8c3e1cbd8c48c4104c7d793e89d7aa1b5f360a8e72ad56d33cc23cc6f42a27e2fbd25748
+    ws: "npm:^8.21.0"
+  checksum: 10c0/3cf22def886b0876b00bb04b9fbaab6c05c041fbcf0869978b6fba9eddccc45a5fc6dab14e369502be9019da43eda44ad1bee3019029ef71bb0c7db3351f4a42
   languageName: node
   linkType: hard
 
@@ -6924,7 +6943,7 @@ __metadata:
   version: 0.0.0-use.local
   resolution: "rpf-markdown-preview@workspace:."
   dependencies:
-    "@raspberrypifoundation/rpf-markdown-core": "npm:^0.1.0"
+    "@raspberrypifoundation/rpf-markdown-core": "npm:^0.1.2"
     "@testing-library/webdriverio": "npm:^3.2.1"
     "@types/mocha": "npm:^10.0.10"
     "@types/node": "npm:^22.0.0"
@@ -7048,9 +7067,9 @@ __metadata:
   linkType: hard
 
 "scratchblocks@npm:^3.6.4":
-  version: 3.6.4
-  resolution: "scratchblocks@npm:3.6.4"
-  checksum: 10c0/226bec03ab7a3633217289bb4f13fcfc59b2ecc3c9a6d98febf7b78f7a59dec3cd8795560c71f87b823a3218148bdf5b7803fd64ef5b47f8b987ca4c004b7b69
+  version: 3.7.0
+  resolution: "scratchblocks@npm:3.7.0"
+  checksum: 10c0/cd9013b870ce561edb2b3741abcada48239a212a8660c9e43cb7f1e1a565f9684b1f37f2a43d5c2e50a6127e1949cbe319b43d3f2e32e80152f478aa9fcc83ab
   languageName: node
   linkType: hard
 
@@ -7873,6 +7892,13 @@ __metadata:
   languageName: node
   linkType: hard
 
+"undici-types@npm:~8.3.0":
+  version: 8.3.0
+  resolution: "undici-types@npm:8.3.0"
+  checksum: 10c0/c8aa7e2fbebfce519654dafadc0ece59be888d2ccaf180fb4495da875e7b536d2456345c384069c7e6f3e9c9ab7435f074957da306f142343eee86ff8048855a
+  languageName: node
+  linkType: hard
+
 "undici@npm:^5.28.3":
   version: 5.29.0
   resolution: "undici@npm:5.29.0"
@@ -8217,7 +8243,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"ws@npm:^8.16.0, ws@npm:^8.18.3, ws@npm:^8.8.0":
+"ws@npm:^8.16.0, ws@npm:^8.8.0":
   version: 8.20.0
   resolution: "ws@npm:8.20.0"
   peerDependencies:
@@ -8229,6 +8255,21 @@ __metadata:
     utf-8-validate:
       optional: true
   checksum: 10c0/956ac5f11738c914089b65878b9223692ace77337ba55379ae68e1ecbeae9b47a0c6eb9403688f609999a58c80d83d99865fe0029b229d308b08c1ef93d4ea14
+  languageName: node
+  linkType: hard
+
+"ws@npm:^8.21.0":
+  version: 8.21.0
+  resolution: "ws@npm:8.21.0"
+  peerDependencies:
+    bufferutil: ^4.0.1
+    utf-8-validate: ">=5.0.2"
+  peerDependenciesMeta:
+    bufferutil:
+      optional: true
+    utf-8-validate:
+      optional: true
+  checksum: 10c0/ef4a243476283fc49bc7550966c4af4aa0eef56273837211e700de3b664e08604a760cdddcb5ba43c049140e74ccfec5b0ee0bb439e08c2adf9138902fdde5f9
   languageName: node
   linkType: hard
 
